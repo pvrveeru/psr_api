@@ -1,14 +1,41 @@
-const http = require('http');
+const app = require("./app");
+const sequelize = require("./config/db");
+const logger = require("./config/logger");
 
-const hostname = 'localhost';
-const port = 3000;
+let server;
+sequelize
+  .sync({ alter: true })
+  // .sync()
+  .then(() => {
+    server = app.listen(process.env.PORT);
+    //pending set timezone
+    console.log("App listening on port " + process.env.PORT);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+const exitHandler = () => {
+  if (server) {
+    server.close(() => {
+      logger.info("Server closed");
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+};
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World!\n');
-});
+const unexpectedErrorHandler = (error) => {
+  logger.error(error);
+  exitHandler();
+};
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+process.on("uncaughtException", unexpectedErrorHandler);
+process.on("unhandledRejection", unexpectedErrorHandler);
+
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM received");
+  if (server) {
+    server.close();
+  }
 });
