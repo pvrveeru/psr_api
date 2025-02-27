@@ -5,7 +5,7 @@ const { status: httpStatus } = require("http-status");
 const handleCatch = require("../utils/handleCatch");
 const otpGenerator = require("otp-generator");
 // Create item with validation
-const createUser = async (req, res) => {
+const loginUser = async (req, res) => {
   // Validate the request input
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -54,12 +54,68 @@ const createUser = async (req, res) => {
       lowerCaseAlphabets: false,
     });
     // Create the item using the service
-    const item = await userService.createUser(obj, otp);
+    const item = await userService.loginUser(obj, otp);
 
     // Return a standardized response
     res.status(httpStatus.CREATED).json({
       status: "success",
       message: "OTP sent to your registered phone number",
+      data: item,
+    });
+  } catch (error) {
+    handleCatch(res, error, "Error creating user : ");
+  }
+};
+const addUser = async (req, res) => {
+  // Validate the request input
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(httpStatus.BAD_REQUEST).json({
+      status: "error",
+      message: "Validation failed",
+      errors: errors.array(),
+    });
+  }
+
+  try {
+    const {
+      firstName,
+      lastName,
+      userName,
+      description,
+      phoneNumber,
+      email,
+      gender,
+      dateOfBirth,
+      country,
+      notificationsEnabled,
+      darkModeEnabled,
+      createdAt,
+      password,
+    } = req.body;
+    let obj = {
+      firstName,
+      lastName,
+      userName,
+      description,
+      phoneNumber,
+      email,
+      gender,
+      dateOfBirth,
+      country,
+      notificationsEnabled,
+      darkModeEnabled,
+      createdAt,
+      password,
+    };
+
+    // Create the item using the service
+    const item = await userService.addUser(obj);
+
+    // Return a standardized response
+    res.status(httpStatus.CREATED).json({
+      status: "success",
+      message: "User Added successfully",
       data: item,
     });
   } catch (error) {
@@ -129,7 +185,8 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
-  createUser,
+  addUser,
+  loginUser,
   updateUser,
   deleteUser,
   getUserById,

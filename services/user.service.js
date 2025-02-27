@@ -6,13 +6,33 @@ const OTPVerification = require("../models/otpVerification");
 const { Op, sql } = require("@sequelize/core");
 
 // Service to create a user
-const createUser = async (userData, otp) => {
+const loginUser = async (userData, otp) => {
+  if (!userData.phoneNumber) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Phone number is required");
+  }
   try {
-    userData.accountStatus = 1; // Ensure new users are active by default
-    // Upsert the user (update if exists, otherwise create)
-    const [user, created] = await User.upsert(userData, { returning: true });
-    console.log("User created:", created);
-
+    const user = await User.findOne({
+      where: {
+        phoneNumber: userData.phoneNumber,
+        accountStatus: 1, // Only fetch active users
+      },
+      raw: true,
+    });
+    if (!user) {
+      throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    }
+    if (user.setDeviceId && user.deviceId) {
+      if (user.deviceId !== userData.deviceId) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, "User not found");
+      }
+    } else if (user.setDeviceId && !user.deviceId) {
+      await user.update({ deviceId: userData.deviceId });
+    } else if (!user.setDeviceId) {
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        "contact admin for adding device Id"
+      );
+    }
     // Ensure the phoneNumber is extracted properly (depending on your model)
     const phoneNumber = user.phoneNumber || userData.phoneNumber;
 
@@ -25,7 +45,6 @@ const createUser = async (userData, otp) => {
       },
       { returning: true }
     );
-    console.log("otpCreated created:", otpCreated);
     return otpData;
   } catch (error) {
     logger.error(
@@ -34,7 +53,27 @@ const createUser = async (userData, otp) => {
     throw new ApiError(httpStatus.BAD_REQUEST, "User already Created");
   }
 };
+const addUser = async (userData) => {
+  if (!userData.phoneNumber || !userData.deviceId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Phone number or deviceId is required"
+    );
+  }
+  try {
+    userData.accountStatus = 1; // Ensure new users are active by default
+    userData.setDeviceId = true;
+    // Upsert the user (update if exists, otherwise create)
+    const [user, created] = await User.upsert(userData, { returning: true });
 
+    return user;
+  } catch (error) {
+    logger.error(
+      "Error :: user.service :: createUser :: " + error.stack || error.message
+    );
+    throw new ApiError(httpStatus.BAD_REQUEST, "User already Created");
+  }
+};
 // Service to get a user by ID
 const getUserById = async (userId) => {
   try {
@@ -152,7 +191,8 @@ const getAllUsers = async (filters = {}) => {
 };
 
 module.exports = {
-  createUser,
+  loginUser,
+  addUser,
   getUserById,
   updateUser,
   deleteUser,

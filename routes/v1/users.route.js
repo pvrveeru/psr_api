@@ -7,7 +7,8 @@ const router = express.Router();
 
 router.get("/", authenticateUser, userController.getAllUsers); // Get all users
 router.get("/:id", authenticateUser, userController.getUserById); // Get user by ID
-router.post("/", userController.createUser); // Create a new user
+router.post("/add", userController.addUser); // Create a new user
+router.post("/login", userController.loginUser); // Create a new user
 router.put("/:id", authenticateUser, userController.updateUser); // Update user by ID
 router.delete("/:id", authenticateUser, userController.deleteUser); // Delete user by ID
 
