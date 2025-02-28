@@ -4,6 +4,7 @@ const assignmentsRoute = require("./assignments.route");
 const docsRoute = require("./docs.route");
 const usersRoute = require("./users.route");
 const otpRoute = require("./otp.route");
+const uploadRoute = require("./uploadFile.route");
 
 const router = express.Router();
 const defaultRoutes = [
@@ -22,6 +23,10 @@ const defaultRoutes = [
   {
     path: "/assignor",
     route: otpRoute,
+  },
+  {
+    path: "/upload",
+    route: uploadRoute,
   },
 ];
 

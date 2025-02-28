@@ -2,6 +2,7 @@ const {
   deleteFile,
   getFile,
   uploadFile,
+  uploadFiles,
 } = require("../services/images.service");
 const { status: httpStatus } = require("http-status");
 const handleCatch = require("../utils/handleCatch");
@@ -52,7 +53,7 @@ const deleteImage = async (req, res) => {
   try {
     const { assignmentId, fileName } = req.params;
     const user_Id = req?.user?.userId;
-    const filePath = `assignments/images/${assignmentId}`;
+    const filePath = `assignments/images/${assignmentId}/${fileName}`;
 
     const deleted = await deleteFile({
       filePath,
@@ -69,9 +70,33 @@ const deleteImage = async (req, res) => {
     handleCatch(res, error, "Error deleting images: ");
   }
 };
+const uploadImages = async (req, res) => {
+  try {
+    const { assignmentId } = req.params; // Event ID from URL
+    const files = req.files;
 
+    if (!files || files.length === 0) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: "No files uploaded" });
+    }
+    // Upload image to DigitalOcean Spaces inside eventId folder
+    const fileUrls = await uploadFiles({
+      files,
+      path: "assignments/images/" + assignmentId,
+      assignmentId,
+    });
+
+    res
+      .status(httpStatus.OK)
+      .json({ message: "File uploaded successfully", urls: fileUrls });
+  } catch (error) {
+    handleCatch(res, error, "Error uploading images: ");
+  }
+};
 module.exports = {
   deleteImage,
   uploadImage,
+  uploadImages,
   getImage,
 };
