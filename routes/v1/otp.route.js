@@ -1,6 +1,5 @@
 const express = require("express");
 const validate = require("../../middlewares/validate");
-const otpValidation = require("../../validations/otpVerification.validation"); // Assuming validation exists
 const otpController = require("../../controllers/otpVerification.controller");
 
 const router = express.Router();
