@@ -19,6 +19,10 @@ const defaultRoutes = [
     path: "/otp",
     route: otpRoute,
   },
+  {
+    path: "/assignor",
+    route: otpRoute,
+  },
 ];
 
 const devRoutes = [
