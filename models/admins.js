@@ -26,13 +26,13 @@ const Admin = sequelize.define(
     password: {
       type: DataTypes.TEXT, // TEXT for storing hashed password
       allowNull: false, // Required field
-      field: "password_hash", // Maps to snake_case column name
+      field: "password", // Maps to snake_case column name
     },
     createdAt: {
       type: DataTypes.DATE, // TIMESTAMP for created_at
       allowNull: true, // Required field
       field: "created_at", // Maps to snake_case column name
-      defaultValue: Sequelize.NOW, // Automatically set the current timestamp
+      defaultValue: sequelize.NOW, // Automatically set the current timestamp
     },
   },
   {

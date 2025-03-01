@@ -34,4 +34,4 @@ const AssignmentGallery = sequelize.define(
   }
 );
 AssignmentGallery.belongsTo(Assignment, { foreignKey: "assignmentId" });
-module.exports = EventGallery;
+module.exports = AssignmentGallery;

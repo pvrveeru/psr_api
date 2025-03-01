@@ -21,7 +21,7 @@ const Assignor = sequelize.define(
   },
   {
     timestamps: true, // We don't need createdAt/updatedAt for categories
-    tableName: "assignor", // Custom table name (optional)
+    tableName: "assignors", // Custom table name (optional)
     underscored: true, // Ensures snake_case column names in the DB
   }
 );

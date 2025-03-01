@@ -18,7 +18,7 @@ const sequelize = new Sequelize({
   clientMinMessages: "notice",
   host: dbConfig.host,
   dialect: PostgresDialect,
-  // logging: console.log,
+  logging: console.log,
 });
 
 // Test the database connection
