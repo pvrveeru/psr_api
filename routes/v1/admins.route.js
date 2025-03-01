@@ -1,17 +1,12 @@
 const express = require("express");
 const validate = require("../../middlewares/validate");
 const jwtVerifyToken = require("../../middlewares/jwtVerifyToken");
-const adminValidation = require("../../validations/admins.validation"); // Assuming validation exists
 const adminController = require("../../controllers/admins.controller");
 const { roleCheck } = require("../../middlewares/roleCheck");
 const { authenticateUser } = require("../../middlewares/authMiddleware");
 
 const router = express.Router();
-router.post(
-  "/login",
-  validate(adminValidation.loginAdmin),
-  adminController.loginAdmin
-); // Get all users
+router.post("/login", adminController.loginAdmin); // Get all users
 
 router.get(
   "/",
@@ -19,23 +14,19 @@ router.get(
   roleCheck(["admin"]),
   adminController.getAllAdmins
 ); // Get all admins
-router.get(
-  "/getSummaryData",
-  authenticateUser,
-  roleCheck(["admin"]),
-  adminController.getSummaryData
-); // Get all admins
+// router.get(
+//   "/getSummaryData",
+//   authenticateUser,
+//   roleCheck(["admin"]),
+//   adminController.getSummaryData
+// ); // Get all admins
 router.get(
   "/:id",
   authenticateUser,
   roleCheck(["admin"]),
   adminController.getAdminById
 ); // Get admin by ID
-// router.post(
-//   "/",
-//   validate(adminValidation.createAdmin), // Assuming a validation exists for creating an admin
-//   adminController.createAdmin
-// ); // Create a new admin
+router.post("/", adminController.createAdmin); // Create a new admin
 // router.put("/:id", adminController.updateAdmin); // Update an existing admin
 // router.delete("/:id", adminController.deleteAdmin); // Delete an admin
 
@@ -134,67 +125,67 @@ module.exports = router;
  *         $ref: '#/components/responses/Forbidden'
  */
 
-// /**
-//  * @swagger
-//  * /admin:
-//  *   post:
-//  *     summary: Create a new admin
-//  *     description: Create a new admin account.
-//  *     tags: [Admin]
-//  *     parameters:
-//  *       - in: header
-//  *         name: Authorization
-//  *         required: false
-//  *         schema:
-//  *           type: string
-//  *           example: "Bearer <your-token>"
-//  *         description: The authorization token needed to access protected routes.
-//  *       - in: header
-//  *         name: Content-Type
-//  *         required: false
-//  *         schema:
-//  *           type: string
-//  *           example: "application/json"
-//  *         description: The content type of the request body.
-//  *       - in: header
-//  *         name: RequestId
-//  *         required: false
-//  *         schema:
-//  *           type: string
-//  *           example: "req-12345"
-//  *         description: A unique identifier for the request (useful for logging).
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             properties:
-//  *               username:
-//  *                 type: string
-//  *                 description: The unique username for the admin.
-//  *                 example: "admin_user"
-//  *               password:
-//  *                 type: string
-//  *                 description: The hashed password for the admin.
-//  *                 example: "password_1234"
-//  *             required:
-//  *               - username
-//  *               - password
-//  *     responses:
-//  *       "201":
-//  *         description: Admin created successfully
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/AdminDetail'
-//  *       "400":
-//  *         $ref: '#/components/responses/BadRequest'
-//  *       "401":
-//  *         $ref: '#/components/responses/Unauthorized'
-//  *       "403":
-//  *         $ref: '#/components/responses/Forbidden'
-//  */
+/**
+ * @swagger
+ * /admin:
+ *   post:
+ *     summary: Create a new admin
+ *     description: Create a new admin account.
+ *     tags: [Admin]
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "Bearer <your-token>"
+ *         description: The authorization token needed to access protected routes.
+ *       - in: header
+ *         name: Content-Type
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "application/json"
+ *         description: The content type of the request body.
+ *       - in: header
+ *         name: RequestId
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "req-12345"
+ *         description: A unique identifier for the request (useful for logging).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: The unique username for the admin.
+ *                 example: "admin_user"
+ *               password:
+ *                 type: string
+ *                 description: The hashed password for the admin.
+ *                 example: "password_1234"
+ *             required:
+ *               - username
+ *               - password
+ *     responses:
+ *       "201":
+ *         description: Admin created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AdminDetail'
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ */
 /**
  * @swagger
  * /admin/login:

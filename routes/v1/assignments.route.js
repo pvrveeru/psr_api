@@ -5,11 +5,27 @@ const { authenticateUser } = require("../../middlewares/authMiddleware");
 
 const router = express.Router();
 
-router.get("/", authenticateUser, assignmentsController.getAllAssignments); // Get all users
-router.get("/:id", authenticateUser, assignmentsController.getAssignmentById); // Get user by ID
+router.get(
+  "/",
+  //  authenticateUser,
+  assignmentsController.getAllAssignments
+); // Get all users
+router.get(
+  "/:id",
+  //  authenticateUser,
+  assignmentsController.getAssignmentById
+); // Get user by ID
 router.post("/", assignmentsController.addAssignment); // Create a new user
-router.put("/:id", authenticateUser, assignmentsController.updateAssignment); // Update user by ID
-router.delete("/:id", authenticateUser, assignmentsController.deleteAssignment); // Delete user by ID
+router.put(
+  "/:id",
+  //  authenticateUser,
+  assignmentsController.updateAssignment
+); // Update user by ID
+router.delete(
+  "/:id",
+  // authenticateUser,
+  assignmentsController.deleteAssignment
+); // Delete user by ID
 
 module.exports = router;
 /**
@@ -190,7 +206,7 @@ module.exports = router;
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/CreateUserRequest'
+ *             $ref: '#/components/schemas/CreateAssignmentRequest'
  *     responses:
  *       201:
  *         description: User successfully created
@@ -244,7 +260,7 @@ module.exports = router;
  * @swagger
  * components:
  *   schemas:
- *     CreateUserRequest:
+ *     CreateAssignmentRequest:
  *       type: object
  *       properties:
  *         name:
@@ -260,7 +276,7 @@ module.exports = router;
  *           type: string
  *           description: activity
  *         assignedBy:
- *           type: string
+ *           type: integer
  *           description: assignedBy
  *         remarks:
  *           type: string
@@ -274,7 +290,7 @@ module.exports = router;
  *         remarks: "male"
  *         latitude: "1990-01-01"
  *         longitude: "USA"
- *         imageUrl: true
+ *         imageUrl: ""
  */
 /**
  * @swagger

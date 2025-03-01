@@ -6,28 +6,18 @@ const { roleCheck } = require("../../middlewares/roleCheck");
 
 const router = express.Router();
 
-router.get("/", authenticateUser, assignorController.getAllAssignors);
+router.get("/", assignorController.getAllAssignors);
 router.get(
   "/:assignorId",
-  authenticateUser,
+
   assignorController.getAssignorById
 );
-router.post(
-  "/",
-  authenticateUser,
-  roleCheck(["admin"]),
-  assignorController.addAssignor
-);
-router.put(
-  "/:assignorId",
-  authenticateUser,
-  roleCheck(["admin"]),
-  assignorController.updateAssignor
-);
+router.post("/", assignorController.addAssignor);
+router.put("/:assignorId", assignorController.updateAssignor);
 router.delete(
   "/:assignorId",
-  authenticateUser,
-  roleCheck(["admin"]),
+  // authenticateUser,
+  // roleCheck(["admin"]),
   assignorController.deleteAssignor
 );
 

@@ -1,8 +1,7 @@
 const Admin = require("../models/admins"); // Adjust the path as needed
-const Payment = require("../models/paymentDetails"); // Adjust the path as needed
-const Booking = require("../models/bookings"); // Adjust the path as needed
+// const Booking = require("../models/bookings"); // Adjust the path as needed
 const User = require("../models/user"); // Adjust the path as needed
-const Event = require("../models/events"); // Adjust the path as needed
+// const Event = require("../models/events"); // Adjust the path as needed
 
 const { Sequelize, DataTypes, Op, sql } = require("@sequelize/core");
 const { status: httpStatus } = require("http-status");
@@ -10,8 +9,8 @@ const ApiError = require("../utils/ApiError");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const logger = require("../config/logger");
-const PaymentDetails = require("../models/paymentDetails");
-const Bookings = require("../models/bookings");
+// const PaymentDetails = require("../models/paymentDetails");
+// const Bookings = require("../models/bookings");
 const createJwtToken = require("../middlewares/createJwtToken");
 // Service to create an admin
 const createAdmin = async (adminData) => {
@@ -104,91 +103,91 @@ const deleteAdmin = async (adminId) => {
 };
 
 // Service to get all admins (optional)
-const getSummaryData = async (filters = {}) => {
-  try {
-    const { eventName, startDate, endDate, eventId } = filters;
-    // Build event filter conditions
-    const eventWhereConditions = {};
-    const bookingConditions = {};
-    if (eventName) {
-      eventWhereConditions.title = eventName; // Filter by event name
-    }
-    if (eventId) {
-      eventWhereConditions.eventId = eventId; // Filter by event name
-    }
-    // if (startDate || endDate) {
-    //   eventWhereConditions.eventDate = {
-    //     ...(startDate ? { [Op.gte]: startDate } : {}),
-    //     ...(endDate ? { [Op.lte]: endDate } : {}),
-    //   }; // Filter by date range
-    // }
-    if (startDate && endDate) {
-      bookingConditions.bookingDate = {
-        [Op.between]: [filters.startDate, filters.endDate], // Range filter for event dates
-      };
-    }
-    // Total Bookings with event filters
-    const totalBookings = await Booking.count({
-      include: [
-        {
-          model: Event,
-          where: eventWhereConditions, // Filter by event details
-          attributes: [], // No need to fetch event details, just count bookings
-        },
-      ],
-      where: bookingConditions,
-    });
+// const getSummaryData = async (filters = {}) => {
+//   try {
+//     const { eventName, startDate, endDate, eventId } = filters;
+//     // Build event filter conditions
+//     const eventWhereConditions = {};
+//     const bookingConditions = {};
+//     if (eventName) {
+//       eventWhereConditions.title = eventName; // Filter by event name
+//     }
+//     if (eventId) {
+//       eventWhereConditions.eventId = eventId; // Filter by event name
+//     }
+//     // if (startDate || endDate) {
+//     //   eventWhereConditions.eventDate = {
+//     //     ...(startDate ? { [Op.gte]: startDate } : {}),
+//     //     ...(endDate ? { [Op.lte]: endDate } : {}),
+//     //   }; // Filter by date range
+//     // }
+//     if (startDate && endDate) {
+//       bookingConditions.bookingDate = {
+//         [Op.between]: [filters.startDate, filters.endDate], // Range filter for event dates
+//       };
+//     }
+//     // Total Bookings with event filters
+//     const totalBookings = await Booking.count({
+//       include: [
+//         {
+//           model: Event,
+//           where: eventWhereConditions, // Filter by event details
+//           attributes: [], // No need to fetch event details, just count bookings
+//         },
+//       ],
+//       where: bookingConditions,
+//     });
 
-    // Today's Users with event filters
-    const users = await Booking.count({
-      include: [
-        {
-          model: User,
-          attributes: [], // No need to fetch user details, only count
-        },
-        {
-          model: Event,
-          where: eventWhereConditions, // Apply event filters
-          attributes: [], // Exclude event details
-        },
-      ],
-      where: bookingConditions,
-      distinct: true, // Count distinct users
-      col: "user_id", // Column to count distinct users
-    });
+//     // Today's Users with event filters
+//     const users = await Booking.count({
+//       include: [
+//         {
+//           model: User,
+//           attributes: [], // No need to fetch user details, only count
+//         },
+//         {
+//           model: Event,
+//           where: eventWhereConditions, // Apply event filters
+//           attributes: [], // Exclude event details
+//         },
+//       ],
+//       where: bookingConditions,
+//       distinct: true, // Count distinct users
+//       col: "user_id", // Column to count distinct users
+//     });
 
-    // Total Revenue with event filters
-    const totalRevenue = await PaymentDetails.sum("transactionAmount", {
-      where: {
-        transactionStatus: "success", // Only successful transactions
-      },
-      include: [
-        {
-          model: Bookings,
-          required: true, // Inner join to ensure only matching records
-          attributes: [], // Exclude Booking attributes from the result
-          where: {}, // Optional filters for the Bookings table
-        },
-      ],
-    });
+//     // Total Revenue with event filters
+//     const totalRevenue = await PaymentDetails.sum("transactionAmount", {
+//       where: {
+//         transactionStatus: "success", // Only successful transactions
+//       },
+//       include: [
+//         {
+//           model: Bookings,
+//           required: true, // Inner join to ensure only matching records
+//           attributes: [], // Exclude Booking attributes from the result
+//           where: {}, // Optional filters for the Bookings table
+//         },
+//       ],
+//     });
 
-    return {
-      totalBookings,
-      users,
-      totalRevenue: totalRevenue || 0, // Return 0 if no transactions
-    };
-  } catch (error) {
-    logger.error(
-      "Error :: admins.service :: getSummaryData :: " + error.stack ||
-        error.message
-    );
-    if (error.statusCode) {
-      throw error;
-    } else {
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
-    }
-  }
-};
+//     return {
+//       totalBookings,
+//       users,
+//       totalRevenue: totalRevenue || 0, // Return 0 if no transactions
+//     };
+//   } catch (error) {
+//     logger.error(
+//       "Error :: admins.service :: getSummaryData :: " + error.stack ||
+//         error.message
+//     );
+//     if (error.statusCode) {
+//       throw error;
+//     } else {
+//       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
+//     }
+//   }
+// };
 // Service to get all admins (optional)
 const getAllAdmins = async () => {
   try {
@@ -273,5 +272,5 @@ module.exports = {
   getAllAdmins, // Optional
   authenticateAdmin,
   getAdmin,
-  getSummaryData,
+  // getSummaryData,
 };

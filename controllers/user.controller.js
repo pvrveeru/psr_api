@@ -54,7 +54,7 @@ const loginUser = async (req, res) => {
       lowerCaseAlphabets: false,
     });
     // Create the item using the service
-    const item = await userService.loginUser(obj, otp);
+    const item = await userService.loginUser(req.body, otp);
 
     // Return a standardized response
     res.status(httpStatus.CREATED).json({
@@ -110,7 +110,7 @@ const addUser = async (req, res) => {
     };
 
     // Create the item using the service
-    const item = await userService.addUser(obj);
+    const item = await userService.addUser(req.body);
 
     // Return a standardized response
     res.status(httpStatus.CREATED).json({

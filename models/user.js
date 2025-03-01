@@ -110,6 +110,16 @@ const User = sequelize.define(
       field: "role",
       defaultValue: "user",
     },
+    deviceId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: "device_id",
+    },
+    setDeviceId: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      field: "set_device_id",
+    },
     address: {
       type: DataTypes.STRING(200), // VARCHAR(100) for state
       allowNull: true, // Optional field

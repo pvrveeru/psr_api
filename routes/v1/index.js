@@ -5,6 +5,8 @@ const docsRoute = require("./docs.route");
 const usersRoute = require("./users.route");
 const otpRoute = require("./otp.route");
 const uploadRoute = require("./uploadFile.route");
+const adminRoute = require("./admins.route");
+const assignorRoute = require("./assignor.route");
 
 const router = express.Router();
 const defaultRoutes = [
@@ -22,11 +24,15 @@ const defaultRoutes = [
   },
   {
     path: "/assignor",
-    route: otpRoute,
+    route: assignorRoute,
   },
   {
-    path: "/upload",
+    path: "/uploads",
     route: uploadRoute,
+  },
+  {
+    path: "/admin",
+    route: adminRoute,
   },
 ];
 

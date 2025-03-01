@@ -11,7 +11,6 @@ const Assignor = sequelize.define(
       allowNull: false,
       field: "assignor_id", // Maps to snake_case column name in the DB
     },
-
     assignor: {
       type: DataTypes.STRING(100), // VARCHAR(100) for the category name
       allowNull: false, // This field cannot be null

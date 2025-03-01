@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require("@sequelize/core");
 const sequelize = require("../config/db"); // Your Sequelize instance
+const Assignor = require("./assignor");
 
 const Assignments = sequelize.define(
   "Assignments",
@@ -32,9 +33,13 @@ const Assignments = sequelize.define(
       field: "activity", // Maps to snake_case column name
     },
     assignedBy: {
-      type: DataTypes.STRING(100), // VARCHAR(100) for email
+      type: DataTypes.INTEGER, // VARCHAR(100) for email
       allowNull: true, // Required field
-      field: "assigned_by", // Maps to snake_case column name
+      references: {
+        model: Assignor, // Assuming you have a 'Users' model
+        key: "assignor_id", // Foreign key refers to the 'id' field in the 'Users' table
+      },
+      field: "assigned_by", // Maps to snake_case column name in the DB
     },
     remarks: {
       type: DataTypes.STRING(200), // VARCHAR(10) for gender

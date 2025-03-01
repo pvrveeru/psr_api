@@ -14,16 +14,16 @@ const { roleCheck } = require("../../middlewares/roleCheck");
 const router = express.Router();
 
 router.get(
-  "/assignment/:assignment",
+  "/assignment/:assignmentId",
   [
-    check("assignment")
+    check("assignmentId")
       .trim()
       .isInt()
       .withMessage("Invalid assignment. Must be an integer."),
   ],
   validation,
-  authenticateUser,
-  checkUserExist,
+  // authenticateUser,
+  // checkUserExist,
   getImage
 );
 router.post(
@@ -34,8 +34,8 @@ router.post(
       .isInt()
       .withMessage("Invalid assignment. Must be an integer."),
   ],
-  authenticateUser,
-  checkUserExist,
+  // authenticateUser,
+  // checkUserExist,
   upload.array("images", 5),
   uploadImages
 );
@@ -54,7 +54,11 @@ router.post(
 //   uploadImage
 // );
 
-router.delete("/assignment/:assignmentId/", authenticateUser, deleteImage);
+router.delete(
+  "/assignment/:assignmentId/:fileName",
+  //  authenticateUser,
+  deleteImage
+);
 
 module.exports = router;
 
@@ -66,6 +70,13 @@ module.exports = router;
  *     description: Upload up to 5 images as a folder in DigitalOcean Spaces.
  *     tags:
  *       - Uploads
+ *     parameters:
+ *       - in: path
+ *         name: assignmentId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Unique assignment ID
  *     requestBody:
  *       required: true
  *       content:
@@ -186,7 +197,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /uploads/assignment/{assignmentId}:
+ * /uploads/assignment/{assignmentId}/{fileName}:
  *   delete:
  *     summary: Delete a assignment image
  *     tags:
@@ -198,6 +209,12 @@ module.exports = router;
  *         schema:
  *           type: string
  *         description: Unique assignment ID
+ *       - in: path
+ *         name: fileName
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: fileName
  *     responses:
  *       200:
  *         description: File deleted successfully

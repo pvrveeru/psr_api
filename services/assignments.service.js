@@ -3,6 +3,7 @@ const { status: httpStatus } = require("http-status");
 const ApiError = require("../utils/ApiError");
 const logger = require("../config/logger");
 const { Op, sql } = require("@sequelize/core");
+const AssignmentGallery = require("../models/assignmentGallery");
 
 const addAssignment = async (data) => {
   try {
@@ -124,11 +125,39 @@ const getAllAssignments = async (filters = {}) => {
         [Op.eq]: new Date(filters.createdAt),
       };
     }
+    const limit = filters.limit ? parseInt(filters.limit, 10) : 10;
+    const offset = filters.offset ? parseInt(filters.offset, 10) : 0;
+    // Sorting
+    const sortBy = filters.sortBy || "createdAt";
+    const sortOrder = filters.sortOrder === "desc" ? "DESC" : "ASC";
 
+    const totalCount = await AssignmentsModel.count({ where: whereConditions });
     const assignments = await AssignmentsModel.findAll({
+      limit,
+      offset,
       where: whereConditions,
+      order: [[sortBy, sortOrder.toUpperCase()]],
+      raw: true,
     });
-    return assignments;
+    const assignmentIds = await assignments.map(
+      (assignment) => assignment.assignmentId
+    );
+    const images = await AssignmentGallery.findAll({
+      where: { assignmentId: assignmentIds },
+      attributes: ["assignmentId", "imageUrl"],
+      raw: true,
+    });
+    const galleryMap = await images.reduce((acc, image) => {
+      if (!acc[image.assignmentId]) acc[image.assignmentId] = [];
+      acc[image.assignmentId].push(image.imageUrl);
+      return acc;
+    }, {});
+    const result = assignments.map((assignment) => ({
+      ...assignment,
+      galleryImages: galleryMap[assignment.assignmentId] || [],
+    }));
+
+    return { result, totalNoOfRecords: totalCount };
   } catch (error) {
     logger.error(
       "Error :: assignments.service :: getUsers :: " + error.stack ||

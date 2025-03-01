@@ -159,7 +159,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /users:
+ * /users/add:
  *   post:
  *     summary: Create a new user
  *     description: Create a new user account.
@@ -225,6 +225,9 @@ module.exports = router;
  *                   type: string
  *                   format: date
  *                   description: The user's date of birth
+ *                 deviceId:
+ *                   type: string
+ *                   description: device id
  *                 country:
  *                   type: string
  *                   description: The user's country
@@ -241,6 +244,99 @@ module.exports = router;
  *       "403":
  *         $ref: '#/components/responses/Forbidden'
  */
+/**
+ * @swagger
+ * /users/login:
+ *   post:
+ *     summary: Create a new user
+ *     description: Create a new user account.
+ *     tags: [User]
+ *     parameters:
+ *       - in: header
+ *         name: Authorization
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "Bearer <your-token>"
+ *         description: The authorization token needed to access protected routes.
+ *       - in: header
+ *         name: Content-Type
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "application/json"
+ *         description: The content type of the request body.
+ *       - in: header
+ *         name: RequestId
+ *         required: false
+ *         schema:
+ *           type: string
+ *           example: "req-12345"
+ *         description: A unique identifier for the request (useful for logging).
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *               deviceId:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 userId:
+ *                   type: integer
+ *                   description: The user's unique ID
+ *                 phoneNumber:
+ *                   type: string
+ *                   description: The user's phone number
+ *                 userName:
+ *                   type: string
+ *                   description: The user's display name
+ *                 firstName:
+ *                   type: string
+ *                   description: The user's first name
+ *                 lastName:
+ *                   type: string
+ *                   description: The user's last name
+ *                 email:
+ *                   type: string
+ *                   description: The user's email address
+ *                 gender:
+ *                   type: string
+ *                   description: The user's gender
+ *                 dateOfBirth:
+ *                   type: string
+ *                   format: date
+ *                   description: The user's date of birth
+ *                 deviceId:
+ *                   type: string
+ *                   description: device id
+ *                 country:
+ *                   type: string
+ *                   description: The user's country
+ *                 notificationsEnabled:
+ *                   type: boolean
+ *                   description: Whether notifications are enabled for the user
+ *                 darkModeEnabled:
+ *                   type: boolean
+ *                   description: Whether dark mode is enabled for the user
+ *       "400":
+ *         $ref: '#/components/responses/BadRequest'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *       "403":
+ *         $ref: '#/components/responses/Forbidden'
+ */
+
 /**
  * @swagger
  * components:
@@ -276,6 +372,9 @@ module.exports = router;
  *           type: string
  *           format: date
  *           description: The user's date of birth (optional)
+ *         deviceId:
+ *           type: string
+ *           description: deviceId
  *         country:
  *           type: string
  *           maxLength: 100

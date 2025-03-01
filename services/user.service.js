@@ -18,12 +18,13 @@ const loginUser = async (userData, otp) => {
       },
       raw: true,
     });
+    console.log(userData.deviceId, user.deviceId);
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
     if (user.setDeviceId && user.deviceId) {
       if (user.deviceId !== userData.deviceId) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, "User not found");
+        throw new ApiError(httpStatus.UNAUTHORIZED, "deviceId is not valid");
       }
     } else if (user.setDeviceId && !user.deviceId) {
       await user.update({ deviceId: userData.deviceId });
