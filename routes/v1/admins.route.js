@@ -347,76 +347,76 @@ module.exports = router;
 //  *       "403":
 //  *         $ref: '#/components/responses/Forbidden'
 //  */
-/**
- * @swagger
- * /admin/getSummaryData:
- *   get:
- *     summary: Get summary data for admins
- *     description: Retrieve summary information about the admins, such as counts, statuses, or other aggregate data.
- *     tags: [Admin]
- *     parameters:
- *       - in: header
- *         name: Authorization
- *         required: false
- *         schema:
- *           type: string
- *           example: "Bearer <your-token>"
- *         description: The authorization token needed to access protected routes.
- *       - in: header
- *         name: Content-Type
- *         required: false
- *         schema:
- *           type: string
- *           example: "application/json"
- *         description: The content type of the request body.
- *       - in: header
- *         name: RequestId
- *         required: false
- *         schema:
- *           type: string
- *           example: "req-12345"
- *         description: A unique identifier for the request (useful for logging).
- *       - in: query
- *         name: eventName
- *         schema:
- *           type: string
- *         description: Name of the event.
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Filter by a specific event date (YYYY-MM-DD).
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Filter by a specific event date (YYYY-MM-DD).
- *     responses:
- *       "200":
- *         description: Summary data retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 totalAdmins:
- *                   type: integer
- *                   description: The total number of admins.
- *                   example: 25
- *                 activeAdmins:
- *                   type: integer
- *                   description: The number of active admins.
- *                   example: 20
- *                 inactiveAdmins:
- *                   type: integer
- *                   description: The number of inactive admins.
- *                   example: 5
- *       "401":
- *         $ref: '#/components/responses/Unauthorized'
- *       "403":
- *         $ref: '#/components/responses/Forbidden'
- *       "500":
- *         description: Internal server error
- */
+// /**
+//  * @swagger
+//  * /admin/getSummaryData:
+//  *   get:
+//  *     summary: Get summary data for admins
+//  *     description: Retrieve summary information about the admins, such as counts, statuses, or other aggregate data.
+//  *     tags: [Admin]
+//  *     parameters:
+//  *       - in: header
+//  *         name: Authorization
+//  *         required: false
+//  *         schema:
+//  *           type: string
+//  *           example: "Bearer <your-token>"
+//  *         description: The authorization token needed to access protected routes.
+//  *       - in: header
+//  *         name: Content-Type
+//  *         required: false
+//  *         schema:
+//  *           type: string
+//  *           example: "application/json"
+//  *         description: The content type of the request body.
+//  *       - in: header
+//  *         name: RequestId
+//  *         required: false
+//  *         schema:
+//  *           type: string
+//  *           example: "req-12345"
+//  *         description: A unique identifier for the request (useful for logging).
+//  *       - in: query
+//  *         name: eventName
+//  *         schema:
+//  *           type: string
+//  *         description: Name of the event.
+//  *       - in: query
+//  *         name: startDate
+//  *         schema:
+//  *           type: string
+//  *           format: date
+//  *         description: Filter by a specific event date (YYYY-MM-DD).
+//  *       - in: query
+//  *         name: endDate
+//  *         schema:
+//  *           type: string
+//  *           format: date
+//  *         description: Filter by a specific event date (YYYY-MM-DD).
+//  *     responses:
+//  *       "200":
+//  *         description: Summary data retrieved successfully
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 totalAdmins:
+//  *                   type: integer
+//  *                   description: The total number of admins.
+//  *                   example: 25
+//  *                 activeAdmins:
+//  *                   type: integer
+//  *                   description: The number of active admins.
+//  *                   example: 20
+//  *                 inactiveAdmins:
+//  *                   type: integer
+//  *                   description: The number of inactive admins.
+//  *                   example: 5
+//  *       "401":
+//  *         $ref: '#/components/responses/Unauthorized'
+//  *       "403":
+//  *         $ref: '#/components/responses/Forbidden'
+//  *       "500":
+//  *         description: Internal server error
+//  */
