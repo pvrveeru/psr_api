@@ -10,7 +10,7 @@ router.post("/login", adminController.loginAdmin); // Get all users
 
 router.get(
   "/",
-  authenticateUser,
+  // authenticateUser,
   roleCheck(["admin"]),
   adminController.getAllAdmins
 ); // Get all admins
@@ -22,11 +22,11 @@ router.get(
 // ); // Get all admins
 router.get(
   "/:id",
-  authenticateUser,
+  // authenticateUser,
   roleCheck(["admin"]),
   adminController.getAdminById
 ); // Get admin by ID
-router.post("/", adminController.createAdmin); // Create a new admin
+// router.post("/", adminController.createAdmin); // Create a new admin
 // router.put("/:id", adminController.updateAdmin); // Update an existing admin
 // router.delete("/:id", adminController.deleteAdmin); // Delete an admin
 
