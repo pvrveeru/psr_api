@@ -7,37 +7,40 @@ const { Op, sql } = require("@sequelize/core");
 const { Sequelize } = require("@sequelize/core");
 // Service to create a user
 const loginUser = async (userData, otp) => {
-  if (!userData.phoneNumber) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Phone number is required");
+  if (!userData.phoneNumber || !userData.deviceId) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "Phone number and deviceId are required"
+    );
   }
+
   try {
     const user = await User.findOne({
       where: {
         phoneNumber: userData.phoneNumber,
         accountStatus: 1, // Only fetch active users
       },
-      raw: true,
+      raw: false, // Allow instance methods like `update()`
     });
-    console.log(userData.deviceId, user.deviceId);
+
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
-    if (user.setDeviceId && user.deviceId) {
-      if (user.deviceId !== userData.deviceId) {
-        throw new ApiError(httpStatus.UNAUTHORIZED, "deviceId is not valid");
-      }
-    } else if (user.setDeviceId && !user.deviceId) {
-      await user.update({ deviceId: userData.deviceId });
-    } else if (!user.setDeviceId) {
+
+    if (user.deviceId && user.deviceId !== userData.deviceId) {
       throw new ApiError(
         httpStatus.UNAUTHORIZED,
-        "contact admin for adding device Id"
+        "Contact admin to change device ID"
       );
     }
-    // Ensure the phoneNumber is extracted properly (depending on your model)
+
+    // Update deviceId if it's not set
+    if (!user.deviceId) {
+      await user.update({ deviceId: userData.deviceId });
+    }
     const phoneNumber = user.phoneNumber || userData.phoneNumber;
 
-    // Create OTP entry
+    // Create or update OTP entry
     const [otpData, otpCreated] = await OTPVerification.upsert(
       {
         phoneNumber: phoneNumber,
@@ -46,24 +49,27 @@ const loginUser = async (userData, otp) => {
       },
       { returning: true }
     );
+
     return otpData;
   } catch (error) {
-    logger.error(
-      "Error :: user.service :: createUser :: " + error.stack || error.message
-    );
-    throw new ApiError(httpStatus.BAD_REQUEST, "User already Created");
+    logger.error(`Error :: user.service :: loginUser :: ${error.message}`);
+    if (error.statusCode) {
+      throw error;
+    } else {
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "An error occurred during login"
+      );
+    }
   }
 };
+
 const addUser = async (userData) => {
-  if (!userData.phoneNumber || !userData.deviceId) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "Phone number or deviceId is required"
-    );
+  if (!userData.phoneNumber) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Phone number is required");
   }
   try {
     userData.accountStatus = 1; // Ensure new users are active by default
-    userData.setDeviceId = true;
     // Upsert the user (update if exists, otherwise create)
     const [user, created] = await User.upsert(userData, { returning: true });
 
@@ -75,10 +81,10 @@ const addUser = async (userData) => {
     if (error instanceof Sequelize.UniqueConstraintError) {
       throw new ApiError(
         httpStatus.UNPROCESSABLE_ENTITY,
-        "Assignor already exists"
+        "User already exists"
       );
     } else {
-      throw new ApiError(httpStatus.BAD_REQUEST, "User already Created");
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
     }
   }
 };
