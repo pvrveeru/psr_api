@@ -4,7 +4,7 @@ const ApiError = require("../utils/ApiError");
 const logger = require("../config/logger");
 const OTPVerification = require("../models/otpVerification");
 const { Op, sql } = require("@sequelize/core");
-
+const { Sequelize } = require("@sequelize/core");
 // Service to create a user
 const loginUser = async (userData, otp) => {
   if (!userData.phoneNumber) {
@@ -72,7 +72,14 @@ const addUser = async (userData) => {
     logger.error(
       "Error :: user.service :: createUser :: " + error.stack || error.message
     );
-    throw new ApiError(httpStatus.BAD_REQUEST, "User already Created");
+    if (error instanceof Sequelize.UniqueConstraintError) {
+      throw new ApiError(
+        httpStatus.UNPROCESSABLE_ENTITY,
+        "Assignor already exists"
+      );
+    } else {
+      throw new ApiError(httpStatus.BAD_REQUEST, "User already Created");
+    }
   }
 };
 // Service to get a user by ID

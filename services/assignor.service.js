@@ -2,6 +2,7 @@ const AssignorModel = require("../models/assignor"); // Adjust the path as neede
 const { status: httpStatus } = require("http-status");
 const ApiError = require("../utils/ApiError");
 const logger = require("../config/logger");
+const { Sequelize } = require("@sequelize/core");
 
 const addAssignor = async (assignorData) => {
   try {
@@ -12,10 +13,17 @@ const addAssignor = async (assignorData) => {
       "Error :: assignor.service :: addAssignor :: " + error.stack ||
         error.message
     );
-    if (error.statusCode) {
-      throw error;
+    if (error instanceof Sequelize.UniqueConstraintError) {
+      throw new ApiError(
+        httpStatus.UNPROCESSABLE_ENTITY,
+        "Assignor already exists"
+      );
     } else {
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
+      if (error.statusCode) {
+        throw error;
+      } else {
+        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
+      }
     }
   }
 };
