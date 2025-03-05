@@ -70,6 +70,11 @@ module.exports = router;
  *           type: integer
  *         description: Filter users by unique assignment ID.
  *       - in: query
+ *         name: assignedBy
+ *         schema:
+ *           type: integer
+ *         description: Filter users by assignedBy.
+ *       - in: query
  *         name: siteId
  *         schema:
  *           type: string

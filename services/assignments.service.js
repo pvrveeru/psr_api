@@ -4,6 +4,7 @@ const ApiError = require("../utils/ApiError");
 const logger = require("../config/logger");
 const { Op, sql } = require("@sequelize/core");
 const AssignmentGallery = require("../models/assignmentGallery");
+const Assignor = require("../models/assignor");
 
 const addAssignment = async (data) => {
   try {
@@ -99,7 +100,10 @@ const getAllAssignments = async (filters = {}) => {
     let whereConditions = {};
 
     if (filters.assignmentId) {
-      whereConditions.assignmentId = filters.assignmentId;
+      whereConditions.assignmentId = parseInt(filters.assignmentId);
+    }
+    if (filters.assignedBy) {
+      whereConditions.assignedBy = parseInt(filters.assignedBy);
     }
 
     if (filters.siteId) {
@@ -142,6 +146,12 @@ const getAllAssignments = async (filters = {}) => {
     const assignmentIds = await assignments.map(
       (assignment) => assignment.assignmentId
     );
+    const assignorIds = assignments.map((assignment) => assignment.assignedBy);
+    const assignors = await Assignor.findAll({
+      where: { assignorId: assignorIds },
+      attributes: ["assignorId", "assignor"],
+      raw: true,
+    });
     const images = await AssignmentGallery.findAll({
       where: { assignmentId: assignmentIds },
       attributes: ["assignmentId", "imageUrl"],
@@ -152,9 +162,14 @@ const getAllAssignments = async (filters = {}) => {
       acc[image.assignmentId].push(image.imageUrl);
       return acc;
     }, {});
+    const assignorMap = assignors.reduce((acc, assignor) => {
+      acc[assignor.assignorId] = assignor;
+      return acc;
+    }, {});
     const result = assignments.map((assignment) => ({
       ...assignment,
       galleryImages: galleryMap[assignment.assignmentId] || [],
+      assignedBy: assignorMap[assignment.assignmentId],
     }));
 
     return { result, totalNoOfRecords: totalCount };
