@@ -5,6 +5,7 @@ const logger = require("../config/logger");
 const { Op, sql } = require("@sequelize/core");
 const AssignmentGallery = require("../models/assignmentGallery");
 const Assignor = require("../models/assignor");
+const User = require("../models/user");
 
 const addAssignment = async (data) => {
   try {
@@ -102,6 +103,9 @@ const getAllAssignments = async (filters = {}) => {
     if (filters.assignmentId) {
       whereConditions.assignmentId = parseInt(filters.assignmentId);
     }
+    if (filters.userId) {
+      whereConditions.userId = parseInt(filters.userId);
+    }
     if (filters.assignedBy) {
       whereConditions.assignedBy = parseInt(filters.assignedBy);
     }
@@ -147,11 +151,26 @@ const getAllAssignments = async (filters = {}) => {
       (assignment) => assignment.assignmentId
     );
     const assignorIds = assignments.map((assignment) => assignment.assignedBy);
+    const userIds = assignments.map((assignment) => assignment.userId);
     const assignors = await Assignor.findAll({
       where: { assignorId: assignorIds },
       attributes: ["assignorId", "assignor"],
       raw: true,
     });
+    const users = await User.findAll({
+      where: { userId: userIds },
+      attributes: [
+        "userName",
+        "phoneNumber",
+        "userId",
+        "emailId",
+        "profileImageUrl",
+        "deviceId",
+        "address",
+      ],
+      raw: true,
+    });
+    console.log(users);
     const images = await AssignmentGallery.findAll({
       where: { assignmentId: assignmentIds },
       attributes: ["assignmentId", "imageUrl"],
@@ -162,14 +181,20 @@ const getAllAssignments = async (filters = {}) => {
       acc[image.assignmentId].push(image.imageUrl);
       return acc;
     }, {});
+    const userMap = await users.reduce((acc, user) => {
+      acc[user.userId] = user;
+      return acc;
+    }, {});
     const assignorMap = assignors.reduce((acc, assignor) => {
       acc[assignor.assignorId] = assignor;
       return acc;
     }, {});
+    console.log(userMap);
     const result = assignments.map((assignment) => ({
       ...assignment,
       galleryImages: galleryMap[assignment.assignmentId] || [],
-      assignedBy: assignorMap[assignment.assignmentId],
+      assignedBy: assignorMap[assignment.assignedBy],
+      userId: userMap[assignment.userId],
     }));
 
     return { result, totalNoOfRecords: totalCount };
