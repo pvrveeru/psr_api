@@ -296,7 +296,7 @@ module.exports = router;
  *         clientName: "john_doe"
  *         siteId: "John"
  *         activity: "Doe"
- *         assignedBy: "john.doe@example.com"
+ *         assignedBy: 1
  *         remarks: "male"
  *         latitude: "1990-01-01"
  *         longitude: "USA"

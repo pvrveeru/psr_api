@@ -17,10 +17,11 @@ const addAssignment = async (data) => {
       "Error :: assignments.service :: addAssignment :: " + error.stack ||
         error.message
     );
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      "AssignmentsModel already Submitted"
-    );
+    if (error.statusCode) {
+      throw error;
+    } else {
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error?.message);
+    }
   }
 };
 
