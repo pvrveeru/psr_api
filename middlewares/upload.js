@@ -1,42 +1,47 @@
 const multer = require("multer");
+const multerS3 = require("multer-s3");
 const path = require("path");
+const { S3Client } = require("@aws-sdk/client-s3");
 
-// Function to clean filename
-const cleanFileName = (originalname) => {
-  const name = originalname
-    .toLowerCase() // Convert to lowercase
-    .replace(/\s+/g, "-") // Replace spaces with hyphens
-    .replace(/[^a-z0-9\-_.]/g, ""); // Remove special characters (except -, _, .)
-
-  const timestamp = Date.now(); // Generate a timestamp
-  const ext = path.extname(originalname); // Extract file extension
-  const baseName = path.basename(name, ext); // Remove extension from name
-
-  return `${baseName}-${timestamp}${ext}`;
-};
-// Multer Storage (Save Locally Before Upload)
-const storage = multer.diskStorage({
-  destination: "uploads",
-  filename: (req, file, cb) => {
-    const allowedMimeTypes = [
-      "application/pdf",
-      "image/jpg",
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-    ];
-    if (!file.mimetype) {
-      return cb(
-        new Error(
-          "Invalid file type. Only PDF, JPEG, PNG, and GIF files are allowed.",
-          false
-        )
-      );
-    }
-    const cleanName = cleanFileName(file.originalname);
-    cb(null, cleanName);
+// Initialize S3 client
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
-const upload = multer({ storage });
+// Function to clean and generate a unique filename
+const cleanFileName = (originalname) => {
+  const name = originalname
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-_.]/g, "");
+  const timestamp = Date.now();
+  const ext = path.extname(originalname);
+  const baseName = path.basename(name, ext);
+  return `${baseName}-${timestamp}${ext}`;
+};
+
+// Multer configuration
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.AWS_BUCKET_NAME,
+    // acl: "public-read", // Adjust based on your requirements
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      cb(
+        null,
+        `assignments/images/${req.params.assignmentId}/${cleanFileName(
+          file.originalname
+        )}`
+      );
+    },
+  }),
+});
+
 module.exports = { upload };

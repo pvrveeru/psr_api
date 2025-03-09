@@ -3,6 +3,7 @@ const {
   getFile,
   uploadFile,
   uploadFiles,
+  getAllFiles,
 } = require("../services/images.service");
 const { status: httpStatus } = require("http-status");
 const handleCatch = require("../utils/handleCatch");
@@ -10,7 +11,7 @@ const handleCatch = require("../utils/handleCatch");
 const getImage = async (req, res) => {
   try {
     const { assignmentId } = req.params; // Extract event ID from URL
-    const images = await getFile({
+    const images = await getAllFiles({
       path: `assignments/images/${assignmentId}`,
     });
 

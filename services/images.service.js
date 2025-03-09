@@ -8,43 +8,43 @@ const { s3 } = require("../config/s3");
 const fs = require("fs");
 const { addAssignmentImages } = require("./assignmentImages.service");
 require("dotenv").config();
-
+const { S3Client, ListObjectsV2Command } = require("@aws-sdk/client-s3");
+const {
+  paginateListObjectsV2,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 // Service function to delete file from DigitalOcean Spaces
 const deleteFile = async ({ filePath, user_Id, assignmentId, fileName }) => {
   try {
-    const user = await User.findByPk(user_Id);
-    if (!user) {
-      throw new ApiError(httpStatus.NOT_FOUND, "User not found");
-    }
+    // const user = await User.findByPk(user_Id);
+    // if (!user) {
+    //   throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    // }
     const assignment = await AssignmentModel.findByPk(assignmentId);
     if (!assignment) {
       throw new ApiError(httpStatus.NOT_FOUND, "Assignment not found");
     }
 
     const params = {
-      Bucket: process.env.DO_SPACES_NAME,
+      Bucket: process.env.AWS_BUCKET_NAME,
       Key: filePath, // Full path to the file in DigitalOcean Spaces
     };
 
-    const result = await s3.deleteObject(params).promise();
+    const command = new DeleteObjectCommand(params);
+    await s3.send(command);
+
+    // Delete from DB
     await AssignmentGallery.destroy({
       where: {
-        imageUrl: `https://${process.env.DO_SPACES_NAME}.${process.env.DO_SPACES_ENDPOINT}/${filePath}`,
+        imageUrl: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${filePath}`,
       },
     });
-    // await assignment.update({ imageUrl: "" });
 
-    if (Object.keys(result).length === 0) {
-      logger.info("File deleted successfully");
-      return true;
-    } else {
-      logger.info("Unexpected response:", result);
-      return false;
-    }
+    logger.info("✅ File deleted successfully");
+    return true;
   } catch (error) {
-    if (error.statusCode) {
-      throw error;
-    } else if (error.code === "NoSuchKey") {
+    logger.error("❌ Delete File Error:", error.message);
+    if (error.name === "NoSuchKey") {
       throw new ApiError(httpStatus.NOT_FOUND, "File not found");
     } else {
       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
@@ -55,22 +55,59 @@ const deleteFile = async ({ filePath, user_Id, assignmentId, fileName }) => {
 const getFile = async ({ path }) => {
   try {
     let folderPath = path;
-
     const params = {
-      Bucket: process.env.DO_SPACES_NAME,
+      Bucket: process.env.AWS_BUCKET_NAME,
       Prefix: folderPath,
     };
 
-    const data = await s3.listObjectsV2(params).promise();
+    // const data = await s3.listObjectsV2(params).promise();
+    const command = new ListObjectsV2Command(params);
+    const data = await s3.send(command);
 
-    if (!data.Contents.length) {
-      throw new ApiError(httpStatus.NOT_FOUND, "No file found.");
+    if (!data.Contents || data.Contents.length === 0) {
+      throw new ApiError(httpStatus.NOT_FOUND, "No files found.");
     }
 
-    const baseUrl = `https://${process.env.DO_SPACES_NAME}.${process.env.DO_SPACES_ENDPOINT}`;
+    const baseUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`;
     return data.Contents.map((file) => `${baseUrl}/${file.Key}`);
-    // console.log(data.Contents);
-    // return data.Contents;
+  } catch (error) {
+    if (error.statusCode) {
+      throw error;
+    } else {
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
+    }
+  }
+};
+const getAllFiles = async ({ path }) => {
+  try {
+    const paginatorConfig = {
+      client: s3,
+      pageSize: 1000,
+      startingToken: undefined,
+    };
+
+    const commandParams = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Prefix: path,
+    };
+
+    const paginator = paginateListObjectsV2(paginatorConfig, commandParams);
+
+    const baseUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`;
+    const fileUrls = [];
+
+    for await (const page of paginator) {
+      if (page.Contents) {
+        const urls = page.Contents.map((file) => `${baseUrl}/${file.Key}`);
+        fileUrls.push(...urls);
+      }
+    }
+
+    if (fileUrls.length === 0) {
+      throw new ApiError(httpStatus.NOT_FOUND, "No files found.");
+    }
+
+    return fileUrls;
   } catch (error) {
     if (error.statusCode) {
       throw error;
@@ -103,7 +140,7 @@ const uploadFile = async ({ file, folder, assignmentId, user_id }) => {
     const uploadPath = `${folder}`;
 
     const params = {
-      Bucket: process.env.DO_SPACES_NAME,
+      Bucket: process.env.AWS_BUCKET_NAME,
       Key: uploadPath,
       Body: fileContent,
       ACL: "public-read",
@@ -111,7 +148,8 @@ const uploadFile = async ({ file, folder, assignmentId, user_id }) => {
     };
 
     // Upload file to DigitalOcean Spaces
-    const data = await s3.upload(params).promise();
+    const command = new PutObjectCommand(params);
+    await s3.send(command);
 
     let updatedData;
     updatedData = { imageUrl: data.Location };
@@ -144,16 +182,15 @@ const uploadFile = async ({ file, folder, assignmentId, user_id }) => {
 };
 
 const uploadFiles = async ({ files, path, assignmentId }) => {
-  const localFiles = [];
   try {
-    // Add file paths to localFiles array
-    files.map((file) => {
-      localFiles.push(file.path);
-    });
+    if (!files || files.length === 0) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "No files provided");
+    }
 
     const currentImageCount = await AssignmentGallery.count({
-      where: { assignmentId: assignmentId },
+      where: { assignmentId },
     });
+
     if (currentImageCount + files.length > 5) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
@@ -161,45 +198,16 @@ const uploadFiles = async ({ files, path, assignmentId }) => {
       );
     }
 
-    // Upload files to DigitalOcean Spaces
-    const uploadPromises = files.map(async (file) => {
-      const fileContent = fs.readFileSync(file.path);
-      const uploadPath = `${path}/${file.filename}`;
-
-      const params = {
-        Bucket: process.env.DO_SPACES_NAME,
-        Key: uploadPath,
-        Body: fileContent,
-        ACL: "public-read",
-        ContentType: "image/jpeg",
-      };
-
-      return s3
-        .upload(params)
-        .promise()
-        .then((data) => {
-          fs.unlinkSync(file.path); // Delete local file
-          return data.Location; // Return file URL
-        });
+    const uploadedUrls = files.map((file) => {
+      // Construct the file URL based on your S3 configuration
+      const fileUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${file.key}`;
+      return fileUrl;
     });
 
-    let promiseResp = await Promise.all(uploadPromises);
+    await addAssignmentImages({ imageUrls: uploadedUrls, assignmentId });
 
-    await addAssignmentImages({ imageUrls: promiseResp, assignmentId });
-
-    return promiseResp;
+    return uploadedUrls;
   } catch (error) {
-    // Delete local files if an error occurs
-    await Promise.all(
-      localFiles.map((filePath) =>
-        fs.promises
-          .unlink(filePath)
-          .catch((unlinkError) =>
-            logger.error("Error deleting local file: ", unlinkError.message)
-          )
-      )
-    );
-
     if (error.statusCode) {
       throw error;
     } else {
@@ -207,4 +215,4 @@ const uploadFiles = async ({ files, path, assignmentId }) => {
     }
   }
 };
-module.exports = { deleteFile, getFile, uploadFile, uploadFiles };
+module.exports = { deleteFile, getFile, uploadFile, uploadFiles, getAllFiles };
