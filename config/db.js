@@ -18,6 +18,10 @@ const sequelize = new Sequelize({
   clientMinMessages: "notice",
   host: dbConfig.host,
   dialect: PostgresDialect,
+  // dialectOptions: {
+  //   useUTC: false, // Prevents Sequelize from converting dates to UTC
+  // },
+  timezone: "+05:30",
   logging: console.log,
 });
 
