@@ -21,7 +21,7 @@ const sequelize = new Sequelize({
   // dialectOptions: {
   //   useUTC: false, // Prevents Sequelize from converting dates to UTC
   // },
-  timezone: "+05:30",
+  // timezone: "+05:30",
   logging: console.log,
 });
 
