@@ -76,13 +76,11 @@ const updateAssignment = async (assignmentId, updatedData) => {
 
 const deleteAssignment = async (assignmentId) => {
   try {
-    const assignment = await AssignmentsModel.findOne({
-      where: { assignmentId },
-    });
+    const assignment = await AssignmentsModel.findByPk(assignmentId);
     if (!assignment) {
       throw new ApiError(httpStatus.NOT_FOUND, "Assignment not found");
     }
-
+    await assignment.destroy();
     return { message: "Assignment deleted successfully" };
   } catch (error) {
     logger.error(
