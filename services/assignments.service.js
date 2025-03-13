@@ -127,7 +127,10 @@ const getAllAssignments = async (filters = {}) => {
     // Handle createdAt filtering (exact or range)
     if (filters.startDate && filters.endDate) {
       whereConditions.createdAt = {
-        [Op.between]: [new Date(filters.startDate), new Date(filters.endDate)],
+        [Op.between]: [
+          new Date(filters.startDate + "T00:00:00.000Z"),
+          new Date(filters.endDate + "T23:59:59.999Z"),
+        ],
       };
     } else if (filters.createdAt) {
       whereConditions.createdAt = {
