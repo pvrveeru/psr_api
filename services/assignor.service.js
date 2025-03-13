@@ -1,4 +1,5 @@
 const AssignorModel = require("../models/assignor"); // Adjust the path as needed
+const AssignmentModel = require("../models/assignments"); // Adjust the path as needed
 const { status: httpStatus } = require("http-status");
 const ApiError = require("../utils/ApiError");
 const logger = require("../config/logger");
@@ -75,6 +76,19 @@ const deleteAssignor = async (assignorId) => {
     if (!assignor) {
       throw new ApiError(httpStatus.NOT_FOUND, "Assignor not found");
     }
+
+    // Check for related assignments
+    const assignmentsCount = await AssignmentModel.count({
+      where: { assigned_by: assignorId },
+    });
+
+    if (assignmentsCount > 0) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Cannot delete assignor: Related assignments exist"
+      );
+    }
+
     await assignor.destroy();
     return { message: "Assignor deleted successfully" };
   } catch (error) {
@@ -84,6 +98,11 @@ const deleteAssignor = async (assignorId) => {
     );
     if (error.statusCode) {
       throw error;
+    } else if (error.name === "SequelizeForeignKeyConstraintError") {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Cannot delete assignor: Related assignments exist"
+      );
     } else {
       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, error.message);
     }
