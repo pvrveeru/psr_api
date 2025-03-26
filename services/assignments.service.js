@@ -139,7 +139,7 @@ const getAllAssignments = async (filters = {}) => {
     const offset = filters.offset ? parseInt(filters.offset, 10) : 0;
     // Sorting
     const sortBy = filters.sortBy || "createdAt";
-    const sortOrder = filters.sortOrder === "asc" ? "ASC" : "DESC";
+    const sortOrder = filters.sortOrder === "desc" ? "DESC" : "ASC";
 
     const totalCount = await AssignmentsModel.count({ where: whereConditions });
     const assignments = await AssignmentsModel.findAll({
